@@ -1,0 +1,984 @@
+AMAZON CDN
+https://cdn-12c7.kxcdn.com/
+
+<?php bloginfo("stylesheet_directory"); ?>/
+*******************************
+HOOKS
+(Put in header.php, and footer.php respectfully)
+
+<?php wp_head(); ?>
+<?php wp_footer(); ?>
+
+*******************************
+INCLUDES
+(Place in index template where wanted)
+
+<?php get_header(); ?>
+<?php get_sidebar(); ?>
+<?php get_footer(); ?>
+<?php get_template_part('navigation'); ?>
+
+<?php body_class( $class ); ?> --This one isn't necessary, it simply adds a class to the body based on which page you are on.
+*******************************
+LINKING TO PAGES ON SITE
+
+<?php echo get_page_link(18); ?>
+*******************************
+TEMPLATE DIRECTORY
+(Use as root directory)
+
+<?php bloginfo('wpurl'); ?>/
+*******************************
+ENABLE TITLE/FEATURED IMAGES
+(Place into functions.php)
+
+add_theme_support( 'title-tag' );
+add_theme_support( 'post-thumbnails' );
+set_post_thumbnail_size( 270, 270 );
+add_filter( 'post_thumbnail_html', 'remove_width_attribute', 10 );
+add_filter( 'image_send_to_editor', 'remove_width_attribute', 10 );
+
+function remove_width_attribute( $html ) {
+   $html = preg_replace( '/(width|height)="\d*"\s/', "", $html );
+   return $html;
+}
+
+*******************************
+MAKE A BACKGROUND PARALLAX
+background: url(../images/benefit-bg.jpg) no-repeat center center fixed;
+   -webkit-background-size: cover;
+   -moz-background-size: cover;
+   -o-background-size: cover;
+   background-size: cover;
+*******************************
+IF NO RELATED PAGES
+
+<?php if(has_children() || ( $post->post_parent )) : ?>
+
+
+<?php else : ?>
+<?php endif; ?>
+
+
+//Add to functions.php
+
+function has_children() {
+    global $post;
+
+    $children = get_pages( array( 'child_of' => $post->ID ) );
+    if( count( $children ) == 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+has_children() is now usable.
+*******************************
+ARRAY 
+<?php if(is_page(array(317, 319, 324, 30))) : ?>
+*******************************
+AFFECT A PARENT AND IT'S CHILDREN
+<?php if ($post->post_parent == '33' || is_page( '33'))  : ?>
+*******************************
+LINK A DROPDOWN MENU
+<select onChange="window.location.href=this.value">
+    <option value="www.google.com">A</option>
+    <option value="www.aol.com">B</option>
+</select>
+*******************************
+HOME.PHP vs FRONT-PAGE.PHP vs INDEX.PHP
+
+home.php will render your blog posts into one page.
+front-page.php allows you to have a static homepage.
+
+*******************************
+For the functions.php file. You can change wp_head to wp_footer.
+
+add_action('wp_head', 'header_script');
+ 
+function header_script() { ?>
+	<script type="text/javascript" src="<?php bloginfo('wpurl'); ?>/wp-content/plugins/my-plugin/jquery.js"></script>
+	<script type="text/javascript" src="<?php bloginfo('wpurl'); ?>/wp-content/plugins/my-plugin/my-script.js"></script>
+<?php }
+*******************************
+IF THAN STATEMENT FOR HOME/SECONDARY TEMPLATE
+
+<?php if(is_page('home')) : ?>
+
+  <?php else : ?>
+<?php get_template_part( 'template-name' ); ?>      <-- No .php extension, secondary.php would be 'secondary'
+  <?php endif; ?>
+
+*******************************
+REGISTER MENUS
+(Place in functions.php)
+<?php
+function register_my_menus() {
+  register_nav_menus(
+    array(
+      'primary-nav' => __( 'Primary Navigation' ),
+	  'mobile-menu' => __( 'Mobile Navigation' ),
+      'footer-menu' => __( 'Footer Menu' )
+    )
+  );
+}
+add_action( 'init', 'register_my_menus' );
+?>
+
+*******************************
+DISPLAY MENUS
+
+<?php wp_nav_menu( array( 'theme_location' => 'primary-nav' ) ); ?>
+
+*******************************
+DISPLAY PARENT TITLE
+
+<a href="<?php echo get_permalink( $post->post_parent ); ?>" title="<?php
+$parent_title = get_the_title($post->post_parent);
+echo $parent_title; ?>" ><?php
+$parent_title = get_the_title($post->post_parent);
+echo $parent_title; ?>
+</a>
+
+// Link the parent page for sub menus
+<a href="<?php echo get_permalink( $post->post_parent ); ?>" >
+*******************************
+IF PAGE IS A PARENT PAGE, THEN
+
+//Add to functions.php
+
+function has_children() {
+    global $post;
+
+    $children = get_pages( array( 'child_of' => $post->ID ) );
+    if( count( $children ) == 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+has_children() is now usable.
+*******************************
+
+DISPLAY TITLE OF CURRENT PAGE
+<?php the_title(); ?>
+*******************************
+DISPLAY TITLE TAGS IN HEAD
+(Place in functions.php)
+
+add_theme_support( 'title-tag' );
+*******************************
+DISPLAY META DESCRIPTION IN HEAD
+<meta name="description" content="<?php bloginfo('description'); ?>" />
+*******************************
+DISPLAY CONTENT
+
+ <?php if (have_posts()) : ?>
+            <?php while (have_posts()) : the_post(); ?>
+            <div class="post" id="post-<?php the_ID(); ?>">
+                <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
+                <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+                <small><?php the_time('F jS, Y') ?> <!-- by <?php the_author() ?> --></small>
+
+                <div class="entry">
+                    <?php the_content('Read the rest of this entry »'); ?>
+                </div>
+
+                <p class="postmetadata">Posted in <?php the_category(', ') ?> <strong>|</strong>
+                    <?php edit_post_link('Edit','','<strong>|</strong>'); ?>
+                    <?php comments_popup_link('No Comments »', '1 Comment »', '% Comments
+                »'); ?>
+                </p>
+            </div>
+            <?php endwhile; ?>
+            <div class="navigation">
+                <div class="alignleft"><?php next_posts_link('« Previous Entries') ?></div>
+                <div class="alignright"><?php previous_posts_link('Next Entries »') ?></div>
+            </div>
+        <?php else : ?>
+            <h2 class="center">Not Found</h2>
+            <p class="center">Sorry, but you are looking for something that isn't here.</p>
+            <?php /*include (TEMPLATEPATH . "/searchform.php");*/ ?>
+        <?php endif; ?>
+
+*******************************
+ALLOW EXCERPTS ON PAGES
+
+add_action( 'init', 'my_add_excerpts_to_pages' );
+function my_add_excerpts_to_pages() {
+     add_post_type_support( 'page', 'excerpt' );
+}
+*******************************
+DISPLAY CONTENT FROM OTHER PAGES
+           <?php
+   $id=about;
+   $post = get_page($id=7);
+   $content = apply_filters('the_content', $post->post_content);
+   echo $content;
+?>
+*******************************
+SUBPAGES
+http://codex.wordpress.org/Template_Tags/wp_list_pages
+//Add this to template
+<?php
+  if($post->post_parent)
+  $children = wp_list_pages("title_li=&child_of=".$post->post_parent."&echo=0&sort_column=menu_order");
+  else
+  $children = wp_list_pages("title_li=&child_of=".$post->ID."&echo=0&sort_column=menu_order");
+  if ($children) { ?>
+  <ul>
+  <?php echo $children; ?>
+  </ul>
+  <?php } ?>
+
+/////////Use this for more than 2 tiers of dropdowns //////////
+<?php global $post; $thispage = $post->ID; // grabs the current post id from global and then assigns it to thispage ?>
+        <?php $pagekids = get_pages("child_of=".$thispage."&sort_column=menu_order"); // gets a list of page that are sub pages of the current page and assigns then to pagekids ?>
+        <?php if ($pagekids) { // if there are any values stored in pagekids and therefore the current page has subpages ?>
+        	<ul>
+        		<?php wp_list_pages("depth=1&title_li=&sort_column=menu_order&child_of=".$thispage); // display the sub pages of the current page only ?>
+            </ul>
+        <?php } else { // if there are no sub pages for the current page ?>
+        	<ul>
+        		<?php echo wp_list_pages('title_li=&child_of='.$post->post_parent.'&echo=0'); ?>
+            </ul>
+
+        <?php } ?>
+////////////////////////////////////////////////////////////////
+
+//Add this to functions.php
+<?php $args = array(
+	'authors'      => '',
+	'child_of'     => 0,
+	'date_format'  => get_option('date_format'),
+	'depth'        => 1,
+	'echo'         => 1,
+	'exclude'      => '',
+	'include'      => '',
+	'link_after'   => '',
+	'link_before'  => '',
+	'post_type'    => 'page',
+	'post_status'  => 'publish',
+	'show_date'    => '',
+	'sort_column'  => 'menu_order, post_title',
+        'sort_order'   => '',
+	'title_li'     => __('Pages'), 
+	'walker'       => new Walker_Page
+); ?>
+*******************************
+GET CHILDREN FOR CERTAIN PAGE
+<?php
+$ancestor_id=12;
+$descendants = get_pages(array('child_of' => $ancestor_id));
+$incl = "";
+
+foreach ($descendants as $page) {
+if (($page->post_parent == $ancestor_id) ||
+   ($page->post_parent == $post->post_parent) ||
+   ($page->post_parent == $post->ID))
+{
+  $incl .= $page->ID . ",";
+}
+}?>
+
+<ul>
+<?php wp_list_pages(array("child_of" => $ancestor_id, "include" => $incl, "link_before" =>       "", "title_li" => "", "sort_column" => "menu_order"));?>
+</ul>
+*******************************
+Custom Dropdowns - Make sure to have the div container have "navigation" as the id.
+(http://www.thomasrudy.com/all-css-dropdown-menu-wordpress-friendly/)
+
+*Change the #navigation ul li to inline-block, text-align:center if the menu wont center*
+*Add z-index to #navigation ul ul li if the dropdowns don't stay on mouse hover.*
+
+<?php wp_nav_menu( array( 'theme_location' => 'primary-nav' ) ); ?>
+
+/* Dropdown Menus */
+/* ===== Top ===== */
+#navigation .current-menu-item a{
+    color:#007fba;
+}
+#navigation ul {
+    list-style:none;
+    margin:0;
+    padding:0;
+	float:left;
+}
+#navigation ul li{
+    display:inline-block;
+	text-align:left;
+}
+	
+/* ===== First Level ===== */				
+#navigation ul li {
+    position:relative;
+    padding:0;
+    margin:0;
+}
+#navigation ul ul li {
+    border:none;
+    background: #777;
+}
+#navigation ul li a {
+    margin-bottom: 0;
+	color: #1d547b;
+    display: inline-block;
+    font-family: Oswald,sans-serif;
+    font-size: 15px;
+    line-height: 20px;
+    padding: 10px 7px;
+    text-decoration: none;
+    text-transform: uppercase;
+	transition: all 400ms ease;
+	-webkit-transition: all 400ms ease;
+	-moz-transition: all 400ms ease;
+	-ms-transition: all 400ms ease;
+}
+#navigation ul li:hover a {
+    position:relative;
+    background-color: #fff;   
+}
+		
+#navigation ul ul,	#navigation ul li:hover ul ul {
+    position:absolute;
+    display:none;
+}
+#navigation ul ul li:hover ul,#navigation ul li:hover ul li:hover ul {
+    display:block;
+    top:0px;
+    left: 100%;
+}
+	
+/* ===== Second and Third Level ===== */
+#navigation ul li:hover ul {
+    display:block;
+    position:absolute;
+    left:0;
+    top:100%;
+    width:auto;
+    height:auto;
+    margin:0;
+    padding:0;
+}
+#navigation ul ul {
+    background:#fff;
+}
+#navigation ul ul ul {
+    background:#e4e4e4 !important;
+    border-color:#e4e4e4 !important;
+    margin-left:-14px;
+}
+#navigation ul ul li a {
+    float:none;
+    width:250px;
+    line-height:normal;
+    font-variant:normal;
+    font-weight:normal;
+    font-size:16px;
+    color:#1d547b !important;
+    text-transform:none;
+    padding:6px 10px;
+    background:#f4f9fd !important;
+}
+#navigation ul ul li a{
+	color:#fff;  
+}
+#navigation ul ul li:hover a {
+    color:#fff !important;
+	background-color:#ff7668 !important;
+}
+#navigation ul ul ul li:hover&gt;a {
+    background:#eee !important;
+    color: #777 !important;
+}
+
+
+
+@media only screen and (max-width: 990px) {
+
+#navigation ul li{
+    float:none;
+    width:100%;
+    display:block;
+}
+
+#navigation ul li:hover ul{
+    display:none;
+}
+}
+*******************************
+ADD ARROWS TO PARENT DROPDOWNS WITH CHILDREN
+
+Add this to functions.php
+
+// add arrows to menu parent 
+function oenology_add_menu_parent_class( $items ) {
+ 
+ $parents = array();
+ foreach ( $items as $item ) {
+ if ( $item->menu_item_parent && $item->menu_item_parent > 0 ) {
+ $parents[] = $item->menu_item_parent;
+ }
+ }
+ 
+ foreach ( $items as $item ) {
+ if ( in_array( $item->ID, $parents ) ) {
+ $item->classes[] = 'has-children';
+ }
+ }
+ 
+ return $items;
+}
+add_filter( 'wp_nav_menu_objects', 'oenology_add_menu_parent_class' );
+
+--
+
+Add this to styles.css
+
+.menu li.has-children > a:after {
+ color: #fff;
+ content: '\e603';
+ font-size: 10px;
+ vertical-align: 1px;
+ font-family: 'webflow-icons';
+ margin-left:5px;
+}
+*******************************
+BODY CLASS (adds unique class to body tag)
+	
+<body <?php body_class(); ?>>
+
+*******************************
+Multiple Headers
+
+<?php if ($post->post_parent == '34' || is_page( '34'))  : ?>
+
+<?php elseif ($post->post_parent == '32' || is_page( '32'))  : ?>
+
+<?php else : ?>
+
+<?php endif; ?>
+*******************************
+MOBILE MENU CSS
+@media only screen and (max-width: 990px) {
+	#navigation ul li{
+    	float:none;
+    }
+	#navigation ul ul li:hover ul,#navigation ul li:hover ul li:hover ul {
+	    left:50%;
+	}
+   #navigation ul ul ul, #navigation ul ul li, #navigation ul ul ul li {
+        display:none !important;
+    }
+	}
+*******************************
+ALIGNLEFT, ALIGNRIGHT, ALIGNCENTER CSS
+/* Alignment */
+.alignleft{
+    float:left;
+	margin:0 15px 8px 0;
+}
+.alignright{
+    float:right;
+	margin:0 0 8px 15px;
+}
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+*{
+	transition: all 400ms ease;
+	-webkit-transition: all 400ms ease;
+	-moz-transition: all 400ms ease;
+	-ms-transition: all 400ms ease;
+}
+
+*******************************
+ADDING WIDGETS
+(http://codex.wordpress.org/Widgetizing_Themes)
+
+//Place this into the functions.php file
+
+<?php
+/**
+ * Register our sidebars and widgetized areas.
+ *
+ */
+function arphabet_widgets_init() {
+
+	register_sidebar( array(
+		'name'          => 'Home right sidebar',
+		'id'            => 'home_right_1',
+		'before_widget' => '<div>',
+		'after_widget'  => '</div>',
+		'before_title'  => '<h2 class="rounded">',
+		'after_title'   => '</h2>',
+	) );
+
+}
+add_action( 'widgets_init', 'arphabet_widgets_init' );
+?>
+
+//Widget placement
+
+<?php if ( is_active_sidebar( 'home_right_1' ) ) : ?>
+	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">
+		<?php dynamic_sidebar( 'home_right_1' ); ?>
+	</div><!-- #primary-sidebar -->
+<?php endif; ?>
+
+************************************************************
+Create new template for blog page:
+
+Things needed for blog:
+
+-Blog Pillar Page
+-Search Results Page
+-Archives
+-Categories
+-Tag.php
+************************************************************
+Create new template for blog page:
+           <article id="blog-page">
+		   <?php if (have_posts()) : ?>
+            <?php while (have_posts()) : the_post(); ?>
+            <div class="post" id="post-<?php the_ID(); ?>">
+                <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
+                <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+
+                <div class="entry">
+                    <?php the_excerpt('Read the rest of this entry »'); ?>
+                </div>
+
+                <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php the_time('F j, Y'); ?></p>
+				<hr />
+            </div>
+            <?php endwhile; ?>
+            <div class="navigation">
+                <div class="alignleft"><?php next_posts_link('« Previous Entries') ?></div>
+                <div class="alignright"><?php previous_posts_link('Next Entries »') ?></div>
+            </div>
+        <?php else : ?>
+            <h2 class="center">Not Found</h2>
+            <p class="center">Sorry, but you are looking for something that isn't here.</p>
+            <?php /*include (TEMPLATEPATH . "/searchform.php");*/ ?>
+        <?php endif; ?>
+		   </article>
+
+
+**On Secondary page side menu add this:
+
+<?php if(is_single() || is_category() || is_archive() || is_home()) : ?><?php if ( is_active_sidebar( 'home_right_1' ) ) : ?>	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">		<?php dynamic_sidebar( 'home_right_1' ); ?>	</div><!-- #primary-sidebar --><?php endif; ?><?php endif; ?>
+
+*******************************
+ADDING READ MORE TO BLOG PAGE / STYLING BLOG PAGE
+
+Add to functions.php
+
+function new_excerpt_more($more) {
+       global $post;
+	return '... <a class="moretag ui-read-more" href="'. get_permalink($post->ID) . '">Read More</a>';
+}
+add_filter('excerpt_more', 'new_excerpt_more');
+
+Add to style.css
+
+article hr{margin:20px 0;}
+#searchform, h2.rounded, .tagcloud{padding:15px 0 15px 15px;}
+.moretag{display:block !important;margin:15px 0;color:#333; font-size:1em;padding:0.6em;text-align:center;text-decoration:none; background:#c4e9fb !important; width:150px !important;transition:color 350ms ease 0s, background-color 350ms ease 0s;} 
+.moretag:hover { background:#4f7aac !important; color:#fff;}
+#searchsubmit{background:#c4e9fb;color:#333;transition:color 350ms ease 0s, background-color 350ms ease 0s;padding:0.66em !important;font-size:1em;border:none;}
+#searchsubmit:hover{background:#4f7aac;color:#fff;}
+#searchform input {padding:0.5em;}
+*******************************
+ADDING A BLOG RSS FEED TO HOMEPAGE
+<?php
+	$rss = new DOMDocument();
+	$rss->load('http://demosite.glacial.com/clay/feed/');
+	$feed = array();
+	foreach ($rss->getElementsByTagName('item') as $node) {
+		$item = array ( 
+			'title' => $node->getElementsByTagName('title')->item(0)->nodeValue,
+			'desc' => $node->getElementsByTagName('description')->item(0)->nodeValue,
+			'link' => $node->getElementsByTagName('link')->item(0)->nodeValue,
+			'date' => $node->getElementsByTagName('pubDate')->item(0)->nodeValue,
+			);
+		array_push($feed, $item);
+	}
+	$limit = 3;
+	for($x=0;$x<$limit;$x++) {
+		$title = str_replace(' & ', ' &amp; ', $feed[$x]['title']);
+		$link = $feed[$x]['link'];
+		$description = $feed[$x]['desc'];
+		$date = date('l F d, Y', strtotime($feed[$x]['date']));
+		echo '<p><strong><a href="'.$link.'" title="'.$title.'">'.$title.'</a></strong><br />';
+		echo '<small><em>Posted on '.$date.'</em></small></p>';
+		echo '<p>'.$description.'</p>';
+	}
+?>
+
+--In Yoast SEO, you can get rid of the sentence after each post.
+Advanced --> RSS
+*******************************
+SEARCH BAR
+
+//Add to functions.php
+
+function wpdocs_after_setup_theme() {
+    add_theme_support( 'html5', array( 'search-form' ) );
+}
+add_action( 'after_setup_theme', 'wpdocs_after_setup_theme' );
+
+//Add to template
+
+<form role="search" method="get" class="search-form" action="<?php echo home_url( '/' ); ?>">
+    <label>
+        <input type="search" class="search-field"
+            placeholder="<?php echo esc_attr_x( 'Search …', 'placeholder' ) ?>"
+            value="<?php echo get_search_query() ?>" name="s"
+            title="<?php echo esc_attr_x( 'Search for:', 'label' ) ?>" />
+    </label>
+    <input type="submit" class="search-submit"
+        value="<?php echo esc_attr_x( 'Search', 'submit button' ) ?>" />
+</form>
+
+
+
+
+BLOG SEARCH RESULTS
+
+//Add to functions.php
+
+add_action('pre_get_posts', 'change_search_limit');
+function change_search_limit($query){
+    $number_of_posts = 99;
+    if ( $query->is_main_query() && is_search() )
+        $query->set('posts_per_page', $number_of_posts);
+}
+
+//Create file search.php, copy whichever secondary template you would like it to look like and paste in.
+
+//This will display how many and what you searched for
+<div class="title sec"><?php echo $wp_query->found_posts; ?> <?php _e( 'Search Results Found For', 'locale' ); ?>: "<?php the_search_query(); ?>"</div>
+
+//Put this where you want the results to show
+<!-- SEARCH PAGE -->
+
+    <div id="search-results" class="wrapper" role="search">
+
+
+<!-- / COUNT RESULTS -->
+
+<?php if (have_posts()) : ?>
+<?php while (have_posts()) : the_post(); ?>
+
+<!-- LIST RESULTS -->
+<section>   
+    <ul>
+        <li>
+        <a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to 
+        <?php the_title_attribute(); ?>"><?php the_title(); ?></a> - 
+        <span class="search-time"><?php the_time('F, j, Y') ?></span>
+        </li>
+    </ul>
+</section>
+<!-- / LIST RESULTS -->
+
+<?php endwhile; else: ?>
+
+<!-- 404 SEARCH -->
+<div class="404-search">
+<?php _e("Oops... We couldn't find what you were searching for. Please try again"); ?>
+</div>
+<!-- / 404 SEARCH -->
+
+<?php endif; ?>
+
+     </div>
+*******************************
+DISPLAY TAGS 
+Tag: <?php single_tag_title(); ?>
+*******************************
+ARCHIVE.PHP
+
+//Title
+<?php
+						if ( is_day() ) :
+							printf( __( 'Daily Archives: %s', 'blaine' ), get_the_date() );
+						elseif ( is_month() ) :
+							printf( __( 'Monthly Archives: %s', 'blaine' ), get_the_date( _x( 'F Y', 'monthly archives date format', 'blaine' ) ) );
+						elseif ( is_year() ) :
+							printf( __( 'Yearly Archives: %s', 'blaine' ), get_the_date( _x( 'Y', 'yearly archives date format', 'blaine' ) ) );
+						else :
+							_e( 'Archives', 'blaine' );
+						endif;
+					?>
+
+//CONTENT
+           <article id="blog-page">
+		   <?php if (have_posts()) : ?>
+            <?php while (have_posts()) : the_post(); ?>
+            <div class="post" id="post-<?php the_ID(); ?>">
+                <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
+                <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+
+                <div class="entry">
+                    <?php the_excerpt('Read the rest of this entry »'); ?>
+                </div>
+
+                <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php the_time('F j, Y'); ?></p>
+				<hr />
+            </div>
+            <?php endwhile; ?>
+            <div class="navigation">
+                <div class="alignleft"><?php next_posts_link('« Previous Entries') ?></div>
+                <div class="alignright"><?php previous_posts_link('Next Entries »') ?></div>
+            </div>
+        <?php else : ?>
+            <h2 class="center">Not Found</h2>
+            <p class="center">Sorry, but you are looking for something that isn't here.</p>
+            <?php /*include (TEMPLATEPATH . "/searchform.php");*/ ?>
+        <?php endif; ?>
+		   </article>
+*******************************
+CATEGORY.PHP
+
+Place this as the title
+<?php single_cat_title('Category: '); ?>
+*******************************
+BREADCRUMBS
+
+-Add the Yoast SEO plugin. 
+-Enable breadcrumbs in the Yoast SEO plugin.
+-Add this line of code to where you would like the breadcrumbs to appear: 
+
+<?php if ( function_exists('yoast_breadcrumb') ) 
+{yoast_breadcrumb('<p id="breadcrumbs">','</p>');} ?>
+*******************************
+CHILD THEME
+
+/*
+Theme Name: Divi-child
+Template: Divi
+Version: 0.1
+*/
+@import url("../Divi/style.css");
+
+
+CREATE FUNCTIONS.PHP
+
+<?php
+add_action( 'wp_enqueue_scripts', 'enqueue_parent_styles' );
+function enqueue_parent_styles() {
+    wp_enqueue_style( 'parent-style', get_template_directory_uri().'/style.css' );
+}
+?>
+
+
+
+AUTO UPDATE PLUGINS/THEMES -- ADD TO WP-CONFIG.PHP
+
+/** Auto Update Themes/Plugins **/
+add_filter( 'auto_update_plugin', '__return_true' );
+add_filter( 'auto_update_theme', '__return_true' );
+*******************************
+WP-CONFIG
+define('CONCATENATE_SCRIPTS', false );
+*******************************
+Google Translate to Spanish
+Replace the url in a link to: <?php bloginfo('wpurl'); ?>/#googtrans(en|uk)
+
+Where you need to change "uk" to one of the country codes:
+http://web.threekind.com/2015/06/installing-google-translator-widget.html
+
+Also have to go through google translate to get the scripts
+*******************************
+ADD DYNAMIC COPYWRITE DATE TO FOOTER
+
+//Add to functions.php
+
+function comicpress_copyright() {
+global $wpdb;
+$copyright_dates = $wpdb->get_results("
+SELECT
+YEAR(min(post_date_gmt)) AS firstdate,
+YEAR(max(post_date_gmt)) AS lastdate
+FROM
+$wpdb->posts
+WHERE
+post_status = 'publish'
+");
+$output = '';
+if($copyright_dates) {
+$copyright = "&copy; " . $copyright_dates[0]->firstdate;
+if($copyright_dates[0]->firstdate != $copyright_dates[0]->lastdate) {
+$copyright .= '-' . $copyright_dates[0]->lastdate;
+}
+$output = $copyright;
+}
+return $output;
+}
+
+//Place where you would like the copyright to go.
+<?php echo comicpress_copyright(); ?>
+*******************************
+REPLACE WORDPRESS LOGO ON LOGIN SCREEN
+
+function my_login_logo() { ?>
+    <style type="text/css">
+        #login h1 a, .login h1 a {
+            background-image: url(<?php echo get_stylesheet_directory_uri(); ?>/images/site-login-logo.png);
+            padding-bottom: 0px;
+        }
+    </style>
+<?php }
+add_action( 'login_enqueue_scripts', 'my_login_logo' );
+
+
+//ALSO CHANGE CSS IN FILE WP-ADMIN/CSS/LOGIN.MIN.CSS
+
+.login h1 a --Change width to 204px
+
+-Make it 200 x 200
+
+*******************************
+RESPONSIVE YOUTUBE
+http://embedresponsively.com/
+.embed-container { position: relative; padding-bottom: 36.25%; height: 0; overflow: hidden; max-width: 80%; margin:auto;margin-bottom:20px;} 
+.embed-container iframe, .embed-container object, .embed-container embed { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+*******************************
+IF YOAST IS NOT GENERATING A SITEMAP
+
+# Yoast SEO - XML Sitemap Rewrite Fix
+RewriteEngine On
+RewriteBase /
+RewriteRule ^sitemap_index.xml$ /index.php?sitemap=1 [L]
+RewriteRule ^locations.kml$ /index.php?sitemap=wpseo_local_kml [L]
+RewriteRule ^geo_sitemap.xml$ /index.php?sitemap=geo [L]
+RewriteRule ^([^/]+?)-sitemap([0-9]+)?.xml$ /index.php?sitemap=$1&sitemap_n=$2 [L]
+RewriteRule ^([a-z]+)?-?sitemap.xsl$ /index.php?xsl=$1 [L]
+# END Yoast SEO - XML Sitemap Rewrite Fix
+*******************************
+ADD EXCERPTS TO PAGES
+//add to functions.php
+add_action( 'init', 'my_add_excerpts_to_pages' );
+	function my_add_excerpts_to_pages() {
+	     add_post_type_support( 'page', 'excerpt' );
+	}
+
+//Display the Excerpt on template
+<?php echo get_the_excerpt(); ?>
+*******************************
+PLACE IN CUSTOM PERMALINK FIELD
+/%category%/%postname%/
+*******************************
+PAGENATION ISSUE WITH RE-DIRECTS
+
+add_filter('redirect_canonical','pif_disable_redirect_canonical');
+
+function pif_disable_redirect_canonical($redirect_url) {
+    if (is_singular()) $redirect_url = false;
+return $redirect_url;
+}
+*******************************
+DISABLE AUTOMATIC P TAGS FOR A SPECIFIC PAGE
+
+//ADD TO FUNCTIONS.PHP
+
+function remove_p_on_pages() {
+   if ( is_page() ) {
+       remove_filter( 'the_content', 'wpautop' );
+       remove_filter( 'the_excerpt', 'wpautop' );
+   }
+}
+add_action( 'wp_head', 'remove_p_on_pages' );
+*******************************
+FLEX Box
+
+.gflexbox{
+ display: -webkit-box;
+ display: -ms-flexbox;
+ display: flex;
+ -ms-flex-flow: row wrap;
+     flex-flow: row wrap;
+ -webkit-box-pack: center;
+ -ms-flex-pack: center;
+         justify-content: center;
+ -webkit-box-align: center;
+ -ms-flex-align: center;
+         align-items: center;
+}
+*******************************
+ALL 404 to HOMEPAGE (replace all contents in 404.php with the following)
+<?php
+header("HTTP/1.1 301 Moved Permanently");
+header("Location: ".get_bloginfo('url'));
+exit();
+?>
+*******************************
+TAKE AWAY WIDTH/HEIGHT ATTRIBUTE ON IMAGES
+
+add_filter( 'post_thumbnail_html', 'remove_width_attribute', 10 );
+add_filter( 'image_send_to_editor', 'remove_width_attribute', 10 );
+
+function remove_width_attribute( $html ) {
+   $html = preg_replace( '/(width|height)="\d*"\s/', "", $html );
+   return $html;
+}
+*******************************
+REMOVE VISUAL EDITOR FOR SPECIFIC PAGES 
+
+function wpse_58501_page_can_richedit( $can )
+{
+   global $post;
+
+   if ( 9 == $post->ID )
+       return false;
+
+   return $can;
+}
+
+*******************************
+IF YOU NEED TO USE GET_SIDEBAR TWICE IN A TEMPLATE
+<?php include( TEMPLATEPATH . '/sidebar.php'); ?>
+*******************************
+/* Enable Oembed for Wista videos */
+wp_oembed_add_provider( '/https?:\/\/(.+)?(wistia.com|wi.st)\/(medias|embed)\/.*/', 'http://fast.wistia.com/oembed', true);
+*******************************
+Disable Ipads auto changing numbers into text with that meta description
+<meta name="format-detection" content="telephone=no">
+*******************************
+DISABLE AUTOMATICALLY GENERATED P TAGS
+
+remove_filter( 'the_content', 'wpautop' );
+remove_filter( 'the_excerpt', 'wpautop' );
+*******************************
+/* Sub Page of Sub Page */
+
+function is_tree($pid)
+{
+  global $post;
+
+  $ancestors = get_post_ancestors($post->$pid);
+  $root = count($ancestors) - 1;
+  $parent = $ancestors[$root];
+
+  if(is_page() && (is_page($pid) || $post->post_parent == $pid || in_array($pid, $ancestors)))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+};
+
+is_tree() is now useable
+*******************************
+Footer Copy
+
+All Rights Reserved. <a href="http://www.glacial.com/site/medical-website-design.htm" target="_blank" title="Medical Website Design">Medical website design</a> by <a href="http://www.glacial.com" title="Glacial Multimedia" target="_blank">Glacial Multimedia</a> &copy;
