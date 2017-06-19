@@ -1,0 +1,59 @@
+1. Copy and paste the site url into gtmetrix.com and developers.google.com/speed/pagespeed/insights.
+2. Check and compare scores.
+  -Gtmetrix has useful tools like waterfall and speed stats.
+  -Pagespeed score is more accurate and is considered more important for SEO.
+3. Enable gzip and caching.
+  -Open htaccess file in content section of ftp.
+  -Paste in this code. Should cover almost all categories of files.
+########### Gzip and Caching ###########
+# compress text, html, javascript, css, xml:
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+# Or, compress certain file types by extension:
+<files *.php>
+SetOutputFilter DEFLATE
+</files>
+<files *.svg>
+SetOutputFilter DEFLATE
+</files>
+## EXPIRES CACHING ##
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/svg+xml "access plus 1 month"
+ExpiresByType image/svg  "access plus 1 month"
+ExpiresByType image/jpg "access plus 1 month"
+ExpiresByType image/jpeg "access plus 1 month"
+ExpiresByType image/gif "access plus 1 month"
+ExpiresByType image/png "access plus 1 month"
+ExpiresByType text/css "access plus 1 month"
+ExpiresByType application/pdf "access plus 1 month"
+ExpiresByType text/javascript "access plus 1 month"
+ExpiresByType text/x-javascript "access plus 1 month"
+ExpiresByType application/javascript "access plus 1 month"  
+ExpiresByType application/x-javascript "access plus 1 month"
+ExpiresByType application/x-shockwave-flash "access plus 1 month"
+ExpiresByType image/x-icon "access plus 1 month"
+ExpiresDefault "access plus 2 days"
+</IfModule>
+## EXPIRES CACHING ##
+####### Gzip and Caching Code Ends #######
+4. Optimize images
+  -Crop images to reasonable size ( If applicable ) 
+  -Run images through Tinypng.com
+  -Then recheck the site in pagespeed/insights and download the new optimized assets.
+    *NOTE* Sometimes pagespeed/insights will resize the images for you, but in my experience I've found it to be very bad at it. If pagespeed/insights does that to your images, I would resize the images yourself, or just ignore it.
+  -If needed, check to make sure that images are scaling properly on the website as well, and fix that with css/inline html attributes if necessary.
+5. Remove Render Blocking Javascript
+  -Open File that references javascript files near the top of the page ( Usually functions.php or header.php )
+  -Add async to script tags as appropriate/move scripts to the footer. E.G. <script src="path/to/your/file.js"></script> becomes <script href="path/to/your/file.js" async="async"></script>
+6. Optimizing CSS Delivery hasn't been figured out yet.
+7. Upload Minified versions of normalize.css, webflow.css and webflow.js files.
+  -Will be in your optimized assets zip file that Pagespeed/insights provides.
+  -Only upload minified files that won't be touched. EG webflow.css but not your-site.css or style.css.
