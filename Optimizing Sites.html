@@ -3,7 +3,7 @@
   -Gtmetrix has useful tools like waterfall and speed stats.
   -Pagespeed score is more accurate and is considered more important for SEO.
 3. Enable gzip and caching.
-  -Open htaccess file in content section of ftp.
+  -Open htaccess file in content section of server.
   -Paste in this code. Should cover almost all categories of files.
 ########### Gzip and Caching ###########
 # compress text, html, javascript, css, xml:
@@ -46,7 +46,7 @@ ExpiresDefault "access plus 2 days"
 ####### Gzip and Caching Code Ends #######
 4. Optimize images
   -Crop images to reasonable size ( If applicable ) 
-  -Run images through Tinypng.com
+  -Run images through tinypng.com
   -Then recheck the site in pagespeed/insights and download the new optimized assets.
     *NOTE* Sometimes pagespeed/insights will resize the images for you, but in my experience I've found it to be very bad at it. If pagespeed/insights does that to your images, I would resize the images yourself, or just ignore it.
   -If needed, check to make sure that images are scaling properly on the website as well, and fix that with css/inline html attributes if necessary.
