@@ -1,0 +1,18 @@
+1. login at http://v2.glacialblog.com/admin.html
+
+user: glacial
+password: Bl1nk10A
+
+2. Click on “Admins”
+
+3. Locate the search bar at the top of the list, and search for “stephenson”
+
+4. Locate “Stephenson Eye Associates” under “CLIENT”. In the same row, navigate to the “L” on the far right side, and click it. WARNING: Be careful not the click the delete button right next to the “L”
+
+5. Click on “ARTICLES”
+
+6. You should be directed to a URL that looks like http://v2.glacialblog.com/admin.html?form=entries
+
+Replace the word”entries” in the URL with the word “videos”. It should look like the following:
+
+http://v2.glacialblog.com/admin.html?form=videos
