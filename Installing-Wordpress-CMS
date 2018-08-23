@@ -3,6 +3,10 @@ https://cdn-12c7.kxcdn.com/
 
 <?php bloginfo("stylesheet_directory"); ?>/
 *******************************
+
+DISPLAY TITLE OF CURRENT PAGE
+<?php the_title(); ?>
+*******************************
 HOOKS
 (Put in header.php, and footer.php respectfully)
 
@@ -18,6 +22,7 @@ INCLUDES
 <?php get_footer(); ?>
 <?php get_template_part('navigation'); ?>
 
+<?php language_attributes(); ?> -- Put into the <html> tag.
 <?php body_class( $class ); ?> --This one isn't necessary, it simply adds a class to the body based on which page you are on.
 *******************************
 LINKING TO PAGES ON SITE
@@ -42,6 +47,34 @@ function remove_width_attribute( $html ) {
    $html = preg_replace( '/(width|height)="\d*"\s/', "", $html );
    return $html;
 }
+
+/* Adding svgs to wordpress' media library */
+
+function add_file_types_to_uploads($file_types){
+$new_filetypes = array();
+$new_filetypes['svg'] = 'image/svg+xml';
+$file_types = array_merge($file_types, $new_filetypes );
+return $file_types;
+}
+add_action('upload_mimes', 'add_file_types_to_uploads');
+
+*******************************
+AFFECT FIRST OR LAST WORD
+
+$("#lastWord").html(function(){
+  var text= $(this).text().trim().split(" ");
+  var last = text.pop();
+  return text.join(" ") + (text.length > 0 ? " <span class='red'>" + last + "</span>" : last);
+});
+
+$("#firstWord").html(function(){
+  var text= $(this).text().trim().split(" ");
+  var first = text.shift();
+  return (text.length > 0 ? "<span class='red'>"+ first + "</span> " : first) + text.join(" ");
+});
+
+<div id="lastWord">
+<div id="firstWord">
 
 *******************************
 MAKE A BACKGROUND PARALLAX
@@ -74,6 +107,20 @@ function has_children() {
 }
 
 has_children() is now usable.
+*******************************
+FLEX
+
+display:flex;
+display: -webkit-box;
+display: -webkit-flex;
+display: -ms-flexbox;
+*******************************
+TRANSITION
+
+transition: all 400ms ease;
+-webkit-transition: all 400ms ease;
+-moz-transition: all 400ms ease;
+-ms-transition: all 400ms ease;
 *******************************
 ARRAY 
 <?php if(is_page(array(317, 319, 324, 30))) : ?>
@@ -129,20 +176,47 @@ add_action( 'init', 'register_my_menus' );
 *******************************
 DISPLAY MENUS
 
-<?php wp_nav_menu( array( 'theme_location' => 'primary-nav' ) ); ?>
+<?php wp_nav_menu( array( 'theme_location' => 'primary-nav', 'menu_class' => 'nav-menu-top' ) ); ?>
 
 *******************************
 DISPLAY PARENT TITLE
 
 <a href="<?php echo get_permalink( $post->post_parent ); ?>" title="<?php
 $parent_title = get_the_title($post->post_parent);
-echo $parent_title; ?>" ><?php
+echo $parent_title; ?>" class="related-page-title"><?php
 $parent_title = get_the_title($post->post_parent);
 echo $parent_title; ?>
 </a>
 
-// Link the parent page for sub menus
-<a href="<?php echo get_permalink( $post->post_parent ); ?>" >
+
+/* Related Pages Links */
+
+	<ul>
+<?php
+  if($post->post_parent)
+  $children = mytheme_list_pages("title_li=&child_of=".$post->post_parent."&echo=0&sort_column=menu_order");
+  else
+  $children = mytheme_list_pages("title_li=&child_of=".$post->ID."&echo=0&sort_column=menu_order");
+  if ($children) { ?>
+  
+  <?php echo $children; ?>
+  
+  <?php } ?>
+  </ul>
+
+
+/* Put Into Functions */
+function mytheme_list_pages($param) {
+	$pages = get_pages($param); 
+	foreach ( $pages as $page ) {
+	$li  = '<li><a href="' . get_page_link( $page->ID ) . '" title="';
+	$li .= esc_attr($page->post_title);
+	$li .= '">';
+	$li .= $page->post_title;
+	$li .= '</a></li>';
+	echo $li;
+	}
+}
 *******************************
 IF PAGE IS A PARENT PAGE, THEN
 
@@ -160,16 +234,9 @@ function has_children() {
 }
 
 has_children() is now usable.
+
 *******************************
 
-DISPLAY TITLE OF CURRENT PAGE
-<?php the_title(); ?>
-*******************************
-DISPLAY TITLE TAGS IN HEAD
-(Place in functions.php)
-
-add_theme_support( 'title-tag' );
-*******************************
 DISPLAY META DESCRIPTION IN HEAD
 <meta name="description" content="<?php bloginfo('description'); ?>" />
 *******************************
@@ -210,6 +277,10 @@ add_action( 'init', 'my_add_excerpts_to_pages' );
 function my_add_excerpts_to_pages() {
      add_post_type_support( 'page', 'excerpt' );
 }
+
+SHOW EXCERPT
+
+<?php the_excerpt(); ?>
 *******************************
 DISPLAY CONTENT FROM OTHER PAGES
            <?php
@@ -218,55 +289,6 @@ DISPLAY CONTENT FROM OTHER PAGES
    $content = apply_filters('the_content', $post->post_content);
    echo $content;
 ?>
-*******************************
-SUBPAGES
-http://codex.wordpress.org/Template_Tags/wp_list_pages
-//Add this to template
-<?php
-  if($post->post_parent)
-  $children = wp_list_pages("title_li=&child_of=".$post->post_parent."&echo=0&sort_column=menu_order");
-  else
-  $children = wp_list_pages("title_li=&child_of=".$post->ID."&echo=0&sort_column=menu_order");
-  if ($children) { ?>
-  <ul>
-  <?php echo $children; ?>
-  </ul>
-  <?php } ?>
-
-/////////Use this for more than 2 tiers of dropdowns //////////
-<?php global $post; $thispage = $post->ID; // grabs the current post id from global and then assigns it to thispage ?>
-        <?php $pagekids = get_pages("child_of=".$thispage."&sort_column=menu_order"); // gets a list of page that are sub pages of the current page and assigns then to pagekids ?>
-        <?php if ($pagekids) { // if there are any values stored in pagekids and therefore the current page has subpages ?>
-        	<ul>
-        		<?php wp_list_pages("depth=1&title_li=&sort_column=menu_order&child_of=".$thispage); // display the sub pages of the current page only ?>
-            </ul>
-        <?php } else { // if there are no sub pages for the current page ?>
-        	<ul>
-        		<?php echo wp_list_pages('title_li=&child_of='.$post->post_parent.'&echo=0'); ?>
-            </ul>
-
-        <?php } ?>
-////////////////////////////////////////////////////////////////
-
-//Add this to functions.php
-<?php $args = array(
-	'authors'      => '',
-	'child_of'     => 0,
-	'date_format'  => get_option('date_format'),
-	'depth'        => 1,
-	'echo'         => 1,
-	'exclude'      => '',
-	'include'      => '',
-	'link_after'   => '',
-	'link_before'  => '',
-	'post_type'    => 'page',
-	'post_status'  => 'publish',
-	'show_date'    => '',
-	'sort_column'  => 'menu_order, post_title',
-        'sort_order'   => '',
-	'title_li'     => __('Pages'), 
-	'walker'       => new Walker_Page
-); ?>
 *******************************
 GET CHILDREN FOR CERTAIN PAGE
 <?php
@@ -304,7 +326,8 @@ Custom Dropdowns - Make sure to have the div container have "navigation" as the 
     list-style:none;
     margin:0;
     padding:0;
-	float:left;
+	display:flex;
+	justify-content:center;
 }
 #navigation ul li{
     display:inline-block;
@@ -319,18 +342,17 @@ Custom Dropdowns - Make sure to have the div container have "navigation" as the 
 }
 #navigation ul ul li {
     border:none;
-    background: #777;
 }
 #navigation ul li a {
     margin-bottom: 0;
-	color: #1d547b;
+	color: #1b1b1b;
     display: inline-block;
-    font-family: Oswald,sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 20px;
-    padding: 10px 7px;
+    padding: 10px 20px;
+	font-weight:400;
+	font-family:Lato, sans-serif;
     text-decoration: none;
-    text-transform: uppercase;
 	transition: all 400ms ease;
 	-webkit-transition: all 400ms ease;
 	-moz-transition: all 400ms ease;
@@ -338,7 +360,7 @@ Custom Dropdowns - Make sure to have the div container have "navigation" as the 
 }
 #navigation ul li:hover a {
     position:relative;
-    background-color: #fff;   
+    background-color: #febd62;   
 }
 		
 #navigation ul ul,	#navigation ul li:hover ul ul {
@@ -362,9 +384,7 @@ Custom Dropdowns - Make sure to have the div container have "navigation" as the 
     margin:0;
     padding:0;
 }
-#navigation ul ul {
-    background:#fff;
-}
+
 #navigation ul ul ul {
     background:#e4e4e4 !important;
     border-color:#e4e4e4 !important;
@@ -372,36 +392,71 @@ Custom Dropdowns - Make sure to have the div container have "navigation" as the 
 }
 #navigation ul ul li a {
     float:none;
-    width:250px;
     line-height:normal;
     font-variant:normal;
     font-weight:normal;
+	width:320px;
     font-size:16px;
-    color:#1d547b !important;
+    color:#353535 !important;
     text-transform:none;
-    padding:6px 10px;
+    padding:16px 10px;
     background:#f4f9fd !important;
+	border-bottom:1px solid #f9e6cb;
 }
 #navigation ul ul li a{
 	color:#fff;  
 }
 #navigation ul ul li:hover a {
     color:#fff !important;
-	background-color:#ff7668 !important;
+	background-color:#079dad !important;
 }
-#navigation ul ul ul li:hover&gt;a {
-    background:#eee !important;
-    color: #777 !important;
+#navigation ul ul li:hover ul li a {
+	color:#353535 !important;
+	background:#fff2e0 !important;
 }
+#navigation ul ul li:hover ul li:hover a {    
+    color:#fff;
+    background:#079dad !important;
+}
+
+
+/* Add this for the last menu item to have rounded corners */
+.sub-menu li:nth-last-child(1) a{border-bottom-right-radius: 10px;
+border-bottom-left-radius: 10px;}
+
+
+/* Footer Menu */
+#menu-footer-menu{padding-left:0;display:flex;justify-content:center;text-align:center;flex-wrap:wrap;}
+#menu-footer-menu li{list-style:none;margin-bottom:20px;}
+#menu-footer-menu li a{text-decoration:none;color: rgb(15, 122, 93);transition: background-color 350ms ease, color 350ms ease;-webkit-transition: background-color 350ms ease, color 350ms ease;padding:0 5px;}
+#menu-footer-menu li a:hover{color:#a356b6;}
+
+/* Blog */
+.blog .section-title-box, .single .section-title-box, .archive .section-title-box, .category .section-title-box, .search .section-title-box{display:none;}
+.moretag{display:block !important;margin:15px 0;color:#fff; font-size:1em;padding:0.6em;text-align:center;text-decoration:none; background:#007ac3 !important;transition: background-color 350ms ease, color 350ms ease;-webkit-transition: background-color 350ms ease, color 350ms ease; width:150px !important;transition:color 350ms ease 0s, background-color 350ms ease 0s;} 
+.moretag:hover { background:#12aaeb !important; color:#fff;}
+#primary-sidebar form{display:flex;margin-bottom:20px;margin-top:52px;}
+#primary-sidebar .search-field, #primary-sidebar .search-submit{height:30px;}
+#primary-sidebar form label{width:75%; font-family: 'Open Sans', sans-serif;color: #597a96;}
+#primary-sidebar form label span{margin-bottom:20px;font-family: 'Open Sans', sans-serif;}
+#primary-sidebar .search-field{width:100%;}
+#primary-sidebar .search-submit{margin-top:16px;border:0;cursor:pointer;width:25%;background:#007ac3;color:#fff;transition: all 400ms ease;-webkit-transition: all 400ms ease;-moz-transition: all 400ms ease;-ms-transition: all 400ms ease;}
+#primary-sidebar .search-submit:hover{background:#12aaeb;}
+
+
 
 
 
 @media only screen and (max-width: 990px) {
 
+#navigation ul{
+	display:block;
+}
 #navigation ul li{
     float:none;
     width:100%;
     display:block;
+	text-align:center;
 }
 
 #navigation ul li:hover ul{
@@ -437,7 +492,7 @@ add_filter( 'wp_nav_menu_objects', 'oenology_add_menu_parent_class' );
 
 Add this to styles.css
 
-.menu li.has-children > a:after {
+.menu-item-has-children > a:after {
  color: #fff;
  content: '\e603';
  font-size: 10px;
@@ -543,18 +598,20 @@ Things needed for blog:
 -Tag.php
 ************************************************************
 Create new template for blog page:
-           <article id="blog-page">
+           <article id="blog-page" class="entry" role="article">
 		   <?php if (have_posts()) : ?>
             <?php while (have_posts()) : the_post(); ?>
             <div class="post" id="post-<?php the_ID(); ?>">
+            
                 <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
                 <?php the_title(); ?>"><?php the_title(); ?></a></h2>
-
+             <div class="featured-img-post"><?php the_post_thumbnail(); ?></div>
                 <div class="entry">
                     <?php the_excerpt('Read the rest of this entry »'); ?>
                 </div>
 
                 <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php the_time('F j, Y'); ?></p>
+                <?php echo do_shortcode( '[social_warfare]' ); ?>
 				<hr />
             </div>
             <?php endwhile; ?>
@@ -572,8 +629,15 @@ Create new template for blog page:
 
 **On Secondary page side menu add this:
 
-<?php if(is_single() || is_category() || is_archive() || is_home()) : ?><?php if ( is_active_sidebar( 'home_right_1' ) ) : ?>	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">		<?php dynamic_sidebar( 'home_right_1' ); ?>	</div><!-- #primary-sidebar --><?php endif; ?><?php endif; ?>
+<?php if(is_single() || is_category() || is_archive() || is_home() || is_search()) : ?><?php if ( is_active_sidebar( 'home_right_1' ) ) : ?>	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">		<?php dynamic_sidebar( 'home_right_1' ); ?>	</div><!-- #primary-sidebar --><?php endif; ?><?php endif; ?>
 
+*******************************
+ADD FEATURED IMAGE TO BLOG
+<div class="featured-img-post"><?php the_post_thumbnail(); ?></div>
+.featured-img-post{float:right;margin:0 0 8px 15px;}
+
+/* Mobile */
+.featured-img-post{float:none;display:block;margin:auto;}
 *******************************
 ADDING READ MORE TO BLOG PAGE / STYLING BLOG PAGE
 
@@ -581,7 +645,7 @@ Add to functions.php
 
 function new_excerpt_more($more) {
        global $post;
-	return '... <a class="moretag ui-read-more" href="'. get_permalink($post->ID) . '">Read More</a>';
+	return '... <a class="moretag ui-read-more" href="'. get_permalink($post->ID) . '" title="Click Here to Read More">Read More</a>';
 }
 add_filter('excerpt_more', 'new_excerpt_more');
 
@@ -589,7 +653,7 @@ Add to style.css
 
 article hr{margin:20px 0;}
 #searchform, h2.rounded, .tagcloud{padding:15px 0 15px 15px;}
-.moretag{display:block !important;margin:15px 0;color:#333; font-size:1em;padding:0.6em;text-align:center;text-decoration:none; background:#c4e9fb !important; width:150px !important;transition:color 350ms ease 0s, background-color 350ms ease 0s;} 
+.moretag{display:block !important;margin:15px 0;color:#fff; font-size:1em;padding:0.6em;text-align:center;text-decoration:none; background:#c4e9fb !important; width:150px !important;transition:color 350ms ease 0s, background-color 350ms ease 0s;} 
 .moretag:hover { background:#4f7aac !important; color:#fff;}
 #searchsubmit{background:#c4e9fb;color:#333;transition:color 350ms ease 0s, background-color 350ms ease 0s;padding:0.66em !important;font-size:1em;border:none;}
 #searchsubmit:hover{background:#4f7aac;color:#fff;}
@@ -623,6 +687,19 @@ ADDING A BLOG RSS FEED TO HOMEPAGE
 
 --In Yoast SEO, you can get rid of the sentence after each post.
 Advanced --> RSS
+*******************************
+ADD IMAGE TO RSS FEED
+
+function featuredtoRSS($content) {
+global $post;
+if ( has_post_thumbnail( $post->ID ) ){
+$content = '' . get_the_post_thumbnail( $post->ID, 'thumbnail', array( 'class' => 'featured-img-post' ) ) . '' . $content;
+}
+return $content;
+}
+
+add_filter('the_excerpt_rss', 'featuredtoRSS');
+add_filter('the_content_feed', 'featuredtoRSS');
 *******************************
 SEARCH BAR
 
@@ -662,14 +739,11 @@ function change_search_limit($query){
 
 //Create file search.php, copy whichever secondary template you would like it to look like and paste in.
 
-//This will display how many and what you searched for
-<div class="title sec"><?php echo $wp_query->found_posts; ?> <?php _e( 'Search Results Found For', 'locale' ); ?>: "<?php the_search_query(); ?>"</div>
-
 //Put this where you want the results to show
 <!-- SEARCH PAGE -->
 
-    <div id="search-results" class="wrapper" role="search">
-
+    <div id="search-results" class="wrapper entry" role="search">
+<h2><?php echo $wp_query->found_posts; ?> <?php _e( 'Search Results Found For', 'locale' ); ?>: "<?php the_search_query(); ?>"</h2>
 
 <!-- / COUNT RESULTS -->
 
@@ -681,8 +755,7 @@ function change_search_limit($query){
     <ul>
         <li>
         <a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to 
-        <?php the_title_attribute(); ?>"><?php the_title(); ?></a> - 
-        <span class="search-time"><?php the_time('F, j, Y') ?></span>
+        <?php the_title_attribute(); ?>"><?php the_title(); ?></a>
         </li>
     </ul>
 </section>
@@ -719,18 +792,19 @@ ARCHIVE.PHP
 					?>
 
 //CONTENT
-           <article id="blog-page">
+           <article id="blog-page" class="entry" role="article">
 		   <?php if (have_posts()) : ?>
             <?php while (have_posts()) : the_post(); ?>
             <div class="post" id="post-<?php the_ID(); ?>">
                 <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
                 <?php the_title(); ?>"><?php the_title(); ?></a></h2>
-
+              <div class="featured-img-post"><?php the_post_thumbnail(); ?></div>
                 <div class="entry">
                     <?php the_excerpt('Read the rest of this entry »'); ?>
                 </div>
 
                 <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php the_time('F j, Y'); ?></p>
+                <?php echo do_shortcode( '[social_warfare]' ); ?>
 				<hr />
             </div>
             <?php endwhile; ?>
@@ -749,6 +823,38 @@ CATEGORY.PHP
 
 Place this as the title
 <?php single_cat_title('Category: '); ?>
+*******************************
+DISPLAY CERTAIN CATEGORY PAGE
+
+ <article id="blog-page" class="entry" role="article">
+		  <?php $catquery = new WP_Query( 'cat=5&posts_per_page=5' ); ?>
+		   <?php if ($catquery->have_posts()) : ?>
+            <?php while ($catquery->have_posts()) : $catquery->the_post(); ?>
+            <div class="post" id="post-<?php the_ID(); ?>">
+                <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to
+                <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+              <div class="featured-img-post"><?php the_post_thumbnail(); ?></div>
+                <div class="entry">
+                    <?php the_excerpt('Read the rest of this entry »'); ?>
+                </div>
+
+                <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php the_time('F j, Y'); ?></p>
+                <?php echo do_shortcode( '[social_warfare]' ); ?>
+				<hr />
+            </div>
+            <?php endwhile; ?>
+            <div class="navigation">
+                <div class="alignleft"><?php next_posts_link('« Previous Entries') ?></div>
+                <div class="alignright"><?php previous_posts_link('Next Entries »') ?></div>
+            </div>
+        <?php else : ?>
+            <h2 class="center">Not Found</h2>
+            <p class="center">Sorry, but you are looking for something that isn't here.</p>
+            <?php /*include (TEMPLATEPATH . "/searchform.php");*/ ?>
+        <?php endif; ?>
+		   </article>
+
+
 *******************************
 BREADCRUMBS
 
@@ -799,32 +905,7 @@ Also have to go through google translate to get the scripts
 *******************************
 ADD DYNAMIC COPYWRITE DATE TO FOOTER
 
-//Add to functions.php
-
-function comicpress_copyright() {
-global $wpdb;
-$copyright_dates = $wpdb->get_results("
-SELECT
-YEAR(min(post_date_gmt)) AS firstdate,
-YEAR(max(post_date_gmt)) AS lastdate
-FROM
-$wpdb->posts
-WHERE
-post_status = 'publish'
-");
-$output = '';
-if($copyright_dates) {
-$copyright = "&copy; " . $copyright_dates[0]->firstdate;
-if($copyright_dates[0]->firstdate != $copyright_dates[0]->lastdate) {
-$copyright .= '-' . $copyright_dates[0]->lastdate;
-}
-$output = $copyright;
-}
-return $output;
-}
-
-//Place where you would like the copyright to go.
-<?php echo comicpress_copyright(); ?>
+<?php echo date('Y'); ?>
 *******************************
 REPLACE WORDPRESS LOGO ON LOGIN SCREEN
 
@@ -841,7 +922,7 @@ add_action( 'login_enqueue_scripts', 'my_login_logo' );
 
 //ALSO CHANGE CSS IN FILE WP-ADMIN/CSS/LOGIN.MIN.CSS
 
-.login h1 a --Change width to 204px
+.login h1 a --Change width to 204px, Change height to 164px
 
 -Make it 200 x 200
 
@@ -872,9 +953,7 @@ add_action( 'init', 'my_add_excerpts_to_pages' );
 
 //Display the Excerpt on template
 <?php echo get_the_excerpt(); ?>
-*******************************
-PLACE IN CUSTOM PERMALINK FIELD
-/%category%/%postname%/
+
 *******************************
 PAGENATION ISSUE WITH RE-DIRECTS
 
@@ -890,10 +969,10 @@ DISABLE AUTOMATIC P TAGS FOR A SPECIFIC PAGE
 //ADD TO FUNCTIONS.PHP
 
 function remove_p_on_pages() {
-   if ( is_page() ) {
-       remove_filter( 'the_content', 'wpautop' );
-       remove_filter( 'the_excerpt', 'wpautop' );
-   }
+    if ( is_page(55) ) {
+        remove_filter( 'the_content', 'wpautop' );
+        remove_filter( 'the_excerpt', 'wpautop' );
+    }
 }
 add_action( 'wp_head', 'remove_p_on_pages' );
 *******************************
@@ -919,6 +998,20 @@ header("HTTP/1.1 301 Moved Permanently");
 header("Location: ".get_bloginfo('url'));
 exit();
 ?>
+*******************************
+CREATE SHORTCODES
+
+/* Put into functions.php */
+include('shortcodes.php');
+
+
+<?php
+// "Hello World" shortcode
+function shortcode_HelloWorld() {
+  return '<p>Hello World!</p>';
+}
+add_shortcode('helloworld', 'shortcode_HelloWorld');
+
 *******************************
 TAKE AWAY WIDTH/HEIGHT ATTRIBUTE ON IMAGES
 
@@ -952,6 +1045,9 @@ wp_oembed_add_provider( '/https?:\/\/(.+)?(wistia.com|wi.st)\/(medias|embed)\/.*
 Disable Ipads auto changing numbers into text with that meta description
 <meta name="format-detection" content="telephone=no">
 *******************************
+SOCIAL WARFARE SHORT CODE
+<?php echo do_shortcode( '[social_warfare]' ); ?>
+*******************************
 DISABLE AUTOMATICALLY GENERATED P TAGS
 
 remove_filter( 'the_content', 'wpautop' );
@@ -979,6 +1075,336 @@ function is_tree($pid)
 
 is_tree() is now useable
 *******************************
+TAKE AWAY RELATED VIDEOS AT THE END OF A YOUTUBE VIDEO
+?rel=0
+
+*******************************
+Fix Formatting Issues on form fields on iPhones/ipads
+
+-webkit-appearance: none;
+*******************************
+ADD FOCUS TO FORM INPUT FIELDS
+input[type=text]:focus, textarea:focus {
+  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+}
+*******************************
+GRID
+
+/*Grid-container layout for the frames page.*/
+.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@supports (display: grid) {
+  .grid-container {
+    display: grid;
+  }
+}
+
+.grid-container > p {
+  margin-bottom: 0;
+}
+
+.grid-container--brands {
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-container--brands > * {
+  width: 200px;
+  margin: 0 50px;
+}
+
+@supports (display: grid) {
+  .grid-container--brands > * {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@supports (display: grid) {
+  .grid-container--brands {
+    grid-template-columns: repeat(auto-fit, minmax(175px, 200px));
+    grid-gap: 1%;
+  }
+}
+*******************************
+DETERMINE IF A PAGE HAS CHILDREN
+
+/* Put into Functions */
+function has_children() {
+	global $post;
+	return count( get_posts( array('post_parent' => $post->ID, 'post_type' => $post->post_type) ) );
+}
+
+/* Now you can use this */
+
+if ( has_children() ) {
+	// do something if this item has children
+}
+*******************************
+MAKE IMAGES OR DIVS BLACK AND WHITE
+
+img {
+    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(100%);
+}
+*******************************
+SOCIAL SHARE LINKS
+Google Plus
+https://plus.google.com/share?url=http://demo.mneye.com.php7-29.phx1-1.websitetestlink.com/our-team/richard-l-lindstrom-m-d/
+
+
+Twitter
+http://twitter.com/share?text=<TITLE>&url=<URL>
+
+E.g. http://twitter.com/share?text=This+is+google+a+search+engine&url=https%3A%2F%2Fwww.google.com
+
+
+Facebook
+
+You Can generate the link here: https://developers.facebook.com/docs/plugins/share-button#configurator
+*******************************
+CHANGE CSS BACKGROUND IMAGES WITH FEATURED IMAGE
+
+style="background-image: url('<?php 
+$target_post_id = '666';
+if (has_post_thumbnail($target_post_id) ): ?>
+<?php $image = wp_get_attachment_image_src( get_post_thumbnail_id($target_post_id), 'single-post-thumbnail' ); ?>
+<?php echo $image[0]; ?>
+<?php endif; ?>');">
+
+
+*******************************
+SOCIAL MEDIA META TAGS
+<meta property="og:title" content="Erin Pontbriand Counseling, LLC" />
+
+<meta property="og:type" content="Counseling Services" />
+
+<meta property="og:url" content="erinpcounseling.com" />
+
+<meta property="og:image" content="http://erinpcounseling.com/bg-images/test-background-lotus.jpg" />
+*******************************
+RESET ADMIN PASSWORD IN WORDPRESS DATABASE
+
+UPDATE `wp_users` SET `user_pass` = MD5( 'new_password' ) WHERE `wp_users`.`user_login` = "admin_username";
+
+*******************************
+MAKE LINK BORDERS COME IN FROM LEFT ON HOVER
+
+link:{
+    position: relative;
+    font-size: 14px;
+    line-height: 24px;
+}
+
+link:after{
+    content:' ';
+    position: absolute;
+    left: 0px;
+    bottom:0px;
+    height: 2px;
+    width:0%;
+    background-color:#f45e61;
+    -webkit-transition: all 400ms ease;
+    -moz-transition: all 400ms ease;
+    transition: all 400ms ease;
+}
+
+link:hover:after{
+    width:100%;
+}
+*******************************
+EDITABLE HELLO BAR
+
+/* Notice Bar */
+function get_post_page_content( $atts ) {
+        extract( shortcode_atts( array(
+            'id' => null,
+            'title' => false,
+        ), $atts ) );
+
+        $the_query = new WP_Query( 'page_id='.$id );
+        while ( $the_query->have_posts() ) {
+            $the_query->the_post();
+                if($title == true){
+                the_title();
+                }
+                the_content();
+        }
+        wp_reset_postdata();
+
+    }
+    add_shortcode( 'my_content', 'get_post_page_content' );
+
+NOW YOU CAN USE THIS:
+
+<?php echo do_shortcode( '[my_content id="1804" /] ' ); ?>
+
+*******************************
+EXCLUDE BLOG CATEGORIES FROM HOME
+
+function exclude_category($query) {
+if ( $query->is_home() ) {
+$query->set('cat', '-xx');
+}
+return $query;
+}
+add_filter('pre_get_posts', 'exclude_category');
+
+
+
+/* For Multiple Blog Categories */
+$query->set(‘cat’, ‘-124 -125 -126’);
+
+*******************************
+STOP A SITE FROM SCROLLING HORIZONTALLY
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+*******************************
+EXCLUDE MULTIPLE CATEGORIES FROM HOME
+
+$query->set(‘cat’, ‘-124 -125 -126’);
+*******************************
+INTERACTIVE SHADOWBOX SELF-TESTS
+
+<!-- MDprospects Schedule Appointment Form script start -->
+<link type="text/css" rel="stylesheet" href="//v2.mdprospects.com/service/scripts/shadowbox/shadowbox.css" />   
+<script src="//v2.mdprospects.com/service/scripts/shadowbox/shadowbox.js" type="text/javascript"></script>
+<script type="text/javascript">
+if (checkMobileBrowser()) {     jQuery(".mdp_online_consult_link").attr("rel",""); } else     Shadowbox.init();
+function checkMobileBrowser() {     var mobile_phone = false; if(navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i)) { mobile_phone = true; } return mobile_phone; }
+</script>
+<!-- MDprospects Schedule Appointment  Form script end -->
+
+*******************************
+ENQUEUE SCRIPTS
+
+
+/* Enqueue Scripts and CSS */
+function register_styles() {
+  wp_register_style( 'normalize', get_template_directory_uri() . '/css/normalize.css', array(), null, 'all' );
+  wp_enqueue_style( 'normalize' );
+
+  wp_register_style( 'webflow', get_template_directory_uri() . '/css/components.css', array( 'normalize' ), null, 'all' );
+  wp_enqueue_style( 'webflow' );
+
+  wp_register_style( 'main_site_style', get_template_directory_uri() . '/css/corneal-consultants-of-colorado.css', array( 'webflow' ), null, 'all' );
+  wp_enqueue_style( 'main_site_style' );
+
+  wp_register_style( 'main_site_overrides', get_template_directory_uri() . '/style.css', array( 'main_site_style' ), null, 'all' );
+  wp_enqueue_style( 'main_site_overrides' );
+
+}
+add_action( 'wp_enqueue_scripts', 'register_styles' );
+function register_scripts() {
+  wp_deregister_script( 'jquery' );
+  wp_register_script( 'jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js', array(), null, false );
+  wp_enqueue_script( 'jquery' );
+  
+  wp_register_script( 'fryjs', get_template_directory_uri() . '/js/corneal-consultants-of-colorado.js', array( 'jquery' ), null, true  );
+  wp_enqueue_script( 'fryjs' );
+  
+  wp_register_script( 'webfontscript', 'https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js', array( 'jquery' ), null, true  );
+  wp_enqueue_script( 'webfontscript' );
+
+
+	wp_add_inline_script( 'webfontscript', 'WebFont.load({
+	  google: {
+	    families: ["PT Serif:400,400italic,700,700italic","Source Sans Pro:200,200italic,300,300italic,regular,italic,600,600italic,700,700italic,900,900italic","Source Serif Pro:regular,600,700"]
+	  }
+	});' );
+	wp_enqueue_script('webfontscript');
+}
+add_action( 'wp_enqueue_scripts', 'register_scripts' );
+
+*******************************
+LOAD GOOGLE FONT THAT ELIMINATES RENDER BLOCKING
+
+  <script type="text/javascript">
+  WebFontConfig = {
+    google: { families: [ 'Roboto:100,300,regular,500,700,900","Roboto Condensed:300,regular,700' ] }
+  };
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+  })(); </script>
+
+
+*******************************
+REMOVE QUERY STRINGS
+
+function _remove_script_version( $src ){
+$parts = explode( '?ver', $src );
+return $parts[0];
+}
+add_filter( 'script_loader_src', '_remove_script_version', 15, 1 );
+add_filter( 'style_loader_src', '_remove_script_version', 15, 1 );
+
+*******************************
+LAZY LOAD IFRAMES (GOOD FOR GOOGLE MAPS)
+
+**PUT IFRAME IN A DIV WITH A CLASS OF iframe**
+<div class="iframe"></div>
+
+
+**ADD THIS TO YOUR JS**
+// LAZY LOAD FUNCTION
+function lazyLoad() {
+  $('iframe').each(function() {
+    var frame = $(this),
+        vidSource = $(frame).attr('data-src'),
+        distance = $(frame).offset().top - $(window).scrollTop(),
+        distTopBot = window.innerHeight - distance,
+        distBotTop = distance + $(frame).height();
+
+    if (distTopBot >= 0 && distBotTop >= 0) { // if frame is partly in view
+      $(frame).attr('src', vidSource);
+      $(frame).removeAttr('data-src');
+    }
+  });
+}
+var throttled = _.throttle(lazyLoad, 100);
+$(window).scroll(throttled);
+
+
+// ILLUSTRATION OF VARIABLES
+// as calculated on div#example
+function lazyLoadExample() {
+  var frame = $('#example'),
+      vidSource = $(frame).attr('data-src'),
+      distance = $(frame).offset().top - $(window).scrollTop(),
+      distTopBot = Math.round(window.innerHeight - distance), // distance from top of frame to bottom of viewport
+      distBotTop = Math.round(distance + $(frame).height()); // distance from bottom of frame to top of viewport
+
+  document.getElementById('stick1').innerHTML = "distBotTop: " + distBotTop;
+  document.getElementById('stick2').innerHTML = "distTopBot: " + distTopBot;
+}
+var throttled = _.throttle(lazyLoadExample, 100);
+$(window).scroll(throttled);
+
+
+
+*******************************
+IE CSS HACK
+_:-ms-lang(x), .map-item{display:block;}
+*******************************
+PLACE IN CUSTOM PERMALINK FIELD
+/%category%/%postname%/
+
+*******************************
+ADD DYNAMIC COPYWRITE DATE TO FOOTER
+
+<?php echo date('Y'); ?>
+*******************************
 Footer Copy
 
-All Rights Reserved. <a href="http://www.glacial.com/site/medical-website-design.htm" target="_blank" title="Medical Website Design">Medical website design</a> by <a href="http://www.glacial.com" title="Glacial Multimedia" target="_blank">Glacial Multimedia</a> &copy;
+All Rights Reserved. <a href="https://www.glacial.com/our-services/medical-website-design/" target="_blank" title="Medical Website Design">Medical website design</a> by <a href="http://www.glacial.com" title="Glacial Multimedia" target="_blank">Glacial Multimedia</a> &copy;
